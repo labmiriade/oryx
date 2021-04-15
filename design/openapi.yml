@@ -1,0 +1,118 @@
+---
+openapi: 3.0.3
+info:
+  version: '2021-04-15'
+  title: 'Oryx News Aggregator'
+
+paths:
+  /articles:
+    get:
+      tags: [Public]
+      summary: Returns all recent articles
+      description: >-
+        Returns all recent articles, ranked and
+        paginated
+      parameters:
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: string
+          description: the max number of items returned
+      responses:
+        200:
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Article'
+    post:
+      tags: [Registered Users]
+      summary: Adds a new article to the list
+      description: >-
+        Insert the given article to the list
+      requestBody:
+        $ref: '#/components/requestBodies/Article'
+      responses:
+        201:
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    $ref: '#/components/schemas/Article'
+
+  /article/{articleId}:
+    parameters:
+      - in: path
+        name: articleId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Public]
+      summary: Returns the selected article
+      description: >-
+        Returns the article with the given id
+      responses:
+        200:
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  type:
+                    $ref: '#/components/schemas/Article'
+
+components:
+  schemas:
+    Article:
+      type: object
+      required: [id, link, title, upvotes]
+      properties:
+        id:
+          type: string
+          format: uuid
+        link:
+          type: string
+          format: uri
+        title:
+          type: string
+        referrer:
+          type: string
+          example: t.panozzo
+          description: who linked the article
+        date:
+          type: string
+          format: '\d{13}'
+          description: >-
+            the date in epoch timestamp (millisecond since GMT 1970-01-01)
+        tags:
+          type: array
+          items:
+            type: string
+          example: [devops, docker]
+        upvotes:
+          type: integer
+          minimum: 0
+  requestBodies:
+    Article:
+      description: A new Article
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [link]
+            properties:
+              link:
+                type: string
+                pattern: 'https?://[-a-zA-Z0-9@:%._+~#=]{1,256}.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?/&=]*)'
