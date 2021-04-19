@@ -1,0 +1,9 @@
+.Header__logo {
+  width: 16px;
+  height: 16px;
+}
+
+div.voters .upvoter,
+div.voters .flagger {
+  border-color: transparent;
+}
