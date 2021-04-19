@@ -95,7 +95,7 @@ export class PublicApiConstruct extends cdk.Construct {
             TableName: props.articlesTable.tableName,
             Item: {
               pk: { S: '$context.requestId' },
-              sk: { S: '0INFO' },
+              sk: { S: 'ART' },
               link: { S: "$input.path('$.link')" },
               // until title will be auto populated, take the link and strip the first 8 characters
               title: { S: "$input.path('$.link').substring(8)" },
@@ -167,7 +167,7 @@ export class PublicApiConstruct extends cdk.Construct {
             ConsistentRead: false,
             Key: {
               pk: { S: "$input.params('articleId')" },
-              sk: { S: '0INFO' },
+              sk: { S: 'ART' },
             },
           }),
         },
@@ -218,7 +218,7 @@ const articlesResponseTemplate = `
       "id": "$item.pk.S",
       "title": #if($item.title.S == '') "$item.link.S" #else "$item.title.S" #end,
       "link": "$item.link.S",
-      "tags": #if($item.tags.SS == '') [] #else "$item.tags.SS" #end,
+      "tags": #if($item.tags.SS == '') [] #else $item.tags.SS #end,
       "upvotes": $item.upvotes.N,
       "referrer": "$item.referrer.S",
       "date": "$item.date.S"
@@ -240,7 +240,7 @@ const articleResponseTemplate = `
   "id": "$item.pk.S",
   "title": #if($item.title.S == '') "$item.link.S" #else "$item.title.S" #end,
   "link": "$item.link.S",
-  "tags": #if($item.tags.SS == '') [] #else "$item.tags.SS" #end,
+  "tags": #if($item.tags.SS == '') [] #else $item.tags.SS #end,
   "upvotes": $item.upvotes.N,
   "referrer": "$item.referrer.S",
   "date": "$item.date.S"

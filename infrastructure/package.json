@@ -29,6 +29,7 @@
     "@aws-cdk/aws-dynamodb": "^1.98.0",
     "@aws-cdk/aws-iam": "^1.98.0",
     "@aws-cdk/aws-lambda": "^1.98.0",
+    "@aws-cdk/aws-lambda-event-sources": "^1.98.0",
     "@aws-cdk/aws-logs": "^1.98.0",
     "@aws-cdk/aws-s3": "^1.98.0",
     "@aws-cdk/core": "1.98.0",
