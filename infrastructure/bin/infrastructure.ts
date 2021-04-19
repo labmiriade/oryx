@@ -11,4 +11,5 @@ new InfrastructureStack(dev, 'NewsAggregator', {
     Progetto: 'OryxNewsAggregator',
     Referente: 't.panozzo',
   },
+  userPoolArn: 'arn:aws:cognito-idp:eu-central-1:312948075487:userpool/eu-central-1_hg8KLDUdE',
 });

@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as apigateway from '@aws-cdk/aws-apigateway';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as cognito from '@aws-cdk/aws-cognito';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as iam from '@aws-cdk/aws-iam';
 
@@ -11,6 +12,7 @@ export interface PublicApiConstructProps {
    */
   corsOrigins?: string[];
   articlesTable: dynamodb.Table;
+  userPool: cognito.IUserPool;
 }
 
 export class PublicApiConstruct extends cdk.Construct {
@@ -31,6 +33,11 @@ export class PublicApiConstruct extends cdk.Construct {
         throttlingBurstLimit: 50,
         tracingEnabled: true,
       },
+      description: 'Oryx News Aggregator Public REST Gateway',
+    });
+
+    const cognitoAuthz = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthz', {
+      cognitoUserPools: [props.userPool],
     });
 
     const fullValidator = api.addRequestValidator('BodyValidator', {
@@ -99,7 +106,7 @@ export class PublicApiConstruct extends cdk.Construct {
               link: { S: "$input.path('$.link')" },
               // until title will be auto populated, take the link and strip the first 8 characters
               title: { S: "$input.path('$.link').substring(8)" },
-              referrer: { S: 'anonymous' },
+              referrer: { S: '$context.authorizer.claims.email' },
               enriched: { BOOL: false },
               upvotes: { N: '0' },
               date: { S: '$context.requestTimeEpoch' },
@@ -136,6 +143,7 @@ export class PublicApiConstruct extends cdk.Construct {
             pattern: 'https?://[-a-zA-Z0-9@:%._+~#=]{1,256}.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?/&=]*)',
           },
         },
+        additionalProperties: false,
       },
     });
     articles.addMethod('POST', postArticle, {
@@ -151,6 +159,7 @@ export class PublicApiConstruct extends cdk.Construct {
         'application/json': requestArticleModel,
       },
       requestValidator: fullValidator,
+      authorizer: cognitoAuthz,
     });
 
     // GET /articles/{articleId}
@@ -206,6 +215,57 @@ export class PublicApiConstruct extends cdk.Construct {
         },
       ],
     });
+
+    // DELETE /articles/{articleId}
+    const deleteArticle = new apigateway.AwsIntegration({
+      service: 'dynamodb',
+      action: 'DeleteItem',
+      options: {
+        credentialsRole: articlesTableReadWriteRole,
+        passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
+        requestTemplates: {
+          'application/json': JSON.stringify({
+            TableName: props.articlesTable.tableName,
+            Key: {
+              pk: { S: "$input.params('articleId')" },
+              sk: { S: 'ART' },
+            },
+            ConditionExpression: '#referrer = :caller',
+            ExpressionAttributeNames: {
+              '#referrer': 'referrer',
+            },
+            ExpressionAttributeValues: {
+              ':caller': { S: '$context.authorizer.claims.email' },
+            },
+          }),
+        },
+        integrationResponses: [
+          {
+            statusCode: '204',
+            responseTemplates: {
+              'application/json': '',
+            },
+          },
+        ],
+      },
+    });
+    article.addMethod('DELETE', deleteArticle, {
+      methodResponses: [
+        {
+          statusCode: '204',
+          responseModels: {
+            'application/json': apigateway.Model.EMPTY_MODEL,
+          },
+        },
+        {
+          statusCode: '403',
+          responseModels: {
+            'application/json': apigateway.Model.ERROR_MODEL,
+          },
+        },
+      ],
+      authorizer: cognitoAuthz,
+    });
   }
 }
 
@@ -233,7 +293,7 @@ const articleResponseTemplate = `
 #if ( "$item" == "" )
 #set( $context.responseOverride.status = 404 )
 {
-  "message": "article $input.params('bookingId') not found"
+  "message": "article $input.params('articleId') not found"
 }
 #else
 {
