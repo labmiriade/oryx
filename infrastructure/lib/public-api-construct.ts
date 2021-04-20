@@ -108,7 +108,8 @@ export class PublicApiConstruct extends cdk.Construct {
               title: { S: "$input.path('$.link').substring(8)" },
               referrer: { S: '$context.authorizer.claims.email' },
               enriched: { BOOL: false },
-              upvotes: { N: '0' },
+              claps: { N: '0' },
+              clappers: { N: '0' },
               date: { S: '$context.requestTimeEpoch' },
               gsi1sk: { S: '$context.requestTimeEpoch' },
               type: { S: 'ART' },
@@ -266,6 +267,72 @@ export class PublicApiConstruct extends cdk.Construct {
       ],
       authorizer: cognitoAuthz,
     });
+
+    // POST /articles/{articleId}/claps
+    const claps = article.addResource('claps');
+    const postClaps = new apigateway.AwsIntegration({
+      service: 'dynamodb',
+      action: 'PutItem',
+      options: {
+        credentialsRole: articlesTableReadWriteRole,
+        passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
+        requestTemplates: {
+          'application/json': JSON.stringify({
+            TableName: props.articlesTable.tableName,
+            Item: {
+              pk: { S: "$input.params('articleId')" },
+              sk: { S: 'CLAPS#$context.authorizer.claims.email' },
+              claps: { N: "$input.json('$.claps')" },
+              time: { S: '$context.requestTimeEpoch' },
+            },
+          }),
+        },
+        integrationResponses: [
+          {
+            statusCode: '200',
+            responseTemplates: {
+              'application/json': JSON.stringify({ message: '"$input.body"' }),
+            },
+          },
+          {
+            statusCode: '404',
+            selectionPattern: '404',
+            responseTemplates: {
+              'application/json': JSON.stringify({
+                message: `article "$input.params('articleId')" not found`,
+              }),
+            },
+          },
+        ],
+      },
+    });
+    const requestClapsModel = api.addModel('ReqClaps', {
+      schema: {
+        type: apigateway.JsonSchemaType.OBJECT,
+        properties: {
+          claps: {
+            type: apigateway.JsonSchemaType.NUMBER,
+            enum: [1],
+          },
+        },
+        additionalProperties: false,
+      },
+    });
+    claps.addMethod('POST', postClaps, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseModels: {
+            'application/json': apigateway.Model.EMPTY_MODEL,
+          },
+        },
+      ],
+      requestModels: {
+        'application/json': requestClapsModel,
+      },
+      requestValidator: fullValidator,
+      authorizer: cognitoAuthz,
+    });
   }
 }
 
@@ -279,7 +346,8 @@ const articlesResponseTemplate = `
       "title": #if($item.title.S == '') "$item.link.S" #else "$item.title.S" #end,
       "link": "$item.link.S",
       "tags": #if($item.tags.SS == '') [] #else $item.tags.SS #end,
-      "upvotes": $item.upvotes.N,
+      "claps": $item.claps.N,
+      "clappers": $item.clappers.N,
       "referrer": "$item.referrer.S",
       "date": "$item.date.S"
     }#if($foreach.hasNext),#end
@@ -301,7 +369,8 @@ const articleResponseTemplate = `
   "title": #if($item.title.S == '') "$item.link.S" #else "$item.title.S" #end,
   "link": "$item.link.S",
   "tags": #if($item.tags.SS == '') [] #else $item.tags.SS #end,
-  "upvotes": $item.upvotes.N,
+  "claps": $item.claps.N,
+  "clappers": $item.clappers.N,
   "referrer": "$item.referrer.S",
   "date": "$item.date.S"
 }

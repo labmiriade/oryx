@@ -34,6 +34,6 @@
     "@aws-cdk/aws-logs": "^1.98.0",
     "@aws-cdk/aws-s3": "^1.98.0",
     "@aws-cdk/core": "^1.98.0",
-    "source-map-support": "^0.5.16"
+    "source-map-support": "^0.5.19"
   }
 }
