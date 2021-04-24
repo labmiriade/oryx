@@ -13,6 +13,7 @@ export interface PublicApiConstructProps {
   corsOrigins?: string[];
   articlesTable: dynamodb.Table;
   userPool: cognito.IUserPool;
+  clapsFn: lambda.Alias;
 }
 
 export class PublicApiConstruct extends cdk.Construct {
@@ -268,57 +269,23 @@ export class PublicApiConstruct extends cdk.Construct {
       authorizer: cognitoAuthz,
     });
 
-    // POST /articles/{articleId}/claps
+    // PUT /articles/{articleId}/claps
     const claps = article.addResource('claps');
-    const postClaps = new apigateway.AwsIntegration({
-      service: 'dynamodb',
-      action: 'PutItem',
-      options: {
-        credentialsRole: articlesTableReadWriteRole,
-        passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
-        requestTemplates: {
-          'application/json': JSON.stringify({
-            TableName: props.articlesTable.tableName,
-            Item: {
-              pk: { S: "$input.params('articleId')" },
-              sk: { S: 'CLAPS#$context.authorizer.claims.email' },
-              claps: { N: "$input.json('$.claps')" },
-              time: { S: '$context.requestTimeEpoch' },
-            },
-          }),
-        },
-        integrationResponses: [
-          {
-            statusCode: '200',
-            responseTemplates: {
-              'application/json': JSON.stringify({ message: '"$input.body"' }),
-            },
-          },
-          {
-            statusCode: '404',
-            selectionPattern: '404',
-            responseTemplates: {
-              'application/json': JSON.stringify({
-                message: `article "$input.params('articleId')" not found`,
-              }),
-            },
-          },
-        ],
-      },
-    });
+    const putClaps = new apigateway.LambdaIntegration(props.clapsFn);
     const requestClapsModel = api.addModel('ReqClaps', {
       schema: {
         type: apigateway.JsonSchemaType.OBJECT,
         properties: {
           claps: {
             type: apigateway.JsonSchemaType.NUMBER,
-            enum: [1],
+            minimum: 0,
+            maximum: 100,
           },
         },
         additionalProperties: false,
       },
     });
-    claps.addMethod('POST', postClaps, {
+    claps.addMethod('PUT', putClaps, {
       methodResponses: [
         {
           statusCode: '200',

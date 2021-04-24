@@ -19,6 +19,7 @@ export class InfrastructureStack extends cdk.Stack {
     new PublicApiConstruct(this, 'PublicApi', {
       articlesTable: coreConstruct.articlesTable,
       userPool,
+      clapsFn: coreConstruct.clapsFn,
     });
   }
 }

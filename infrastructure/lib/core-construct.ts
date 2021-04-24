@@ -6,6 +6,7 @@ import { DynamoEventSource } from '@aws-cdk/aws-lambda-event-sources';
 
 export class CoreConstruct extends cdk.Construct {
   readonly articlesTable: dynamodb.Table;
+  readonly clapsFn: lambda.Alias;
 
   constructor(scope: cdk.Construct, id: string) {
     super(scope, id);
@@ -66,6 +67,24 @@ export class CoreConstruct extends cdk.Construct {
       }),
     );
 
+    const clapsFn = new lambda.Function(this, 'ClapsFn', {
+      code: new lambda.AssetCode('../claps-api/claps_api'),
+      handler: 'main.handler',
+      runtime: lambda.Runtime.PYTHON_3_8,
+      description: 'Function to handle Clap API',
+      logRetention: logs.RetentionDays.TWO_WEEKS,
+      tracing: lambda.Tracing.PASS_THROUGH,
+      environment: {
+        articleTable: articlesTable.tableName,
+      },
+    });
+    const clapsFnLive = new lambda.Alias(clapsFn, 'Live', {
+      aliasName: 'live',
+      version: clapsFn.currentVersion,
+    });
+    articlesTable.grantReadWriteData(clapsFn);
+
     this.articlesTable = articlesTable;
+    this.clapsFn = clapsFnLive;
   }
 }
