@@ -61,11 +61,11 @@ def handler(event, context, b: Bootstrap) -> APIResponse:
         old = res.get('Attributes')
         if old is None:
             deltaclaps = claps
-            deltaclappers = 1
+            deltaclappers = 1 if claps > 0 else 0
             status = 201
         else:
             deltaclaps = claps - old['claps']
-            deltaclappers = 0
+            deltaclappers = -1 if old['claps'] > 0 == claps else 0
             status = 200
         b.table.update_item(
             Key={
