@@ -73,6 +73,73 @@ paths:
                   type:
                     $ref: '#/components/schemas/Article'
 
+  /article/{articleId}/claps:
+    parameters:
+      - in: path
+        name: articleId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Registered Users]
+      summary: Get the claps the user gave to this article
+      description: >-
+        Returns the number of claps the user gave to the
+        specified article.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, caller, claps]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: the article claps refer to
+                  caller:
+                    type: string
+                    format: email
+                    description: the user making the call
+                  claps:
+                    type: integer
+                    minimum: 0
+                    description: >-
+                      The number of claps the user gave to the article,
+                      zero if not called yet
+                  date:
+                    type: string
+                    format: date-time
+                    description: >-
+                      The last time claps where modified by this user
+    put:
+      tags: [Registered Users]
+      summary: Set the claps of the caller for an article
+      description: >-
+        Set the claps from the user for the chosen article.
+        To remove all claps, simply send "claps": 0
+      requestBody:
+        description: The number of claps the user gives to the article
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                claps:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+      responses:
+        201:
+          $ref: '#/components/responses/PutClaps'
+        200:
+          $ref: '#/components/responses/PutClaps'
+        404:
+          description: Article not found
+
 components:
   schemas:
     Article:
@@ -116,3 +183,17 @@ components:
               link:
                 type: string
                 pattern: 'https?://[-a-zA-Z0-9@:%._+~#=]{1,256}.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?/&=]*)'
+  responses:
+    PutClaps:
+      description: The response to a PUT claps request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              caller:
+                type: string
+                format: email
+              claps:
+                type: integer
+                minimum: 0

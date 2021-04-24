@@ -300,6 +300,45 @@ export class PublicApiConstruct extends cdk.Construct {
       requestValidator: fullValidator,
       authorizer: cognitoAuthz,
     });
+
+    // GET /articles/{articleId}/claps
+    const getClaps = new apigateway.AwsIntegration({
+      service: 'dynamodb',
+      action: 'GetItem',
+      options: {
+        credentialsRole: articlesTableReadWriteRole,
+        passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
+        requestTemplates: {
+          'application/json': JSON.stringify({
+            TableName: props.articlesTable.tableName,
+            ConsistentRead: false,
+            Key: {
+              pk: { S: "$input.params('articleId')" },
+              sk: { S: 'CLAPS#$context.authorizer.claims.email' },
+            },
+          }),
+        },
+        integrationResponses: [
+          {
+            statusCode: '200',
+            responseTemplates: {
+              'application/json': clapsResponseTemplate,
+            },
+          },
+        ],
+      },
+    });
+    claps.addMethod('GET', getClaps, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseModels: {
+            'application/json': apigateway.Model.EMPTY_MODEL,
+          },
+        },
+      ],
+      authorizer: cognitoAuthz,
+    });
   }
 }
 
@@ -350,4 +389,22 @@ const postArticleResponseTemplate = `
   "id": "$context.requestId",
   "date": "$context.requestTimeEpoch"
 }
+`;
+
+const clapsResponseTemplate = `
+#set( $item = $input.path('$.Item') )
+#if ( "$item" == "" )
+{
+  "id": "$input.params('articleId')",
+  "caller": "$context.authorizer.claims.email",
+  "claps": 0
+}
+#else
+{
+  "id": "$input.params('articleId')",
+  "caller": "$context.authorizer.claims.email",
+  "claps": $item.claps.N,
+  "date": "$item.datetime.S"
+}
+#end
 `;
