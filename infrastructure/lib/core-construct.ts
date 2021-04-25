@@ -7,6 +7,7 @@ import { DynamoEventSource } from '@aws-cdk/aws-lambda-event-sources';
 export class CoreConstruct extends cdk.Construct {
   readonly articlesTable: dynamodb.Table;
   readonly clapsFn: lambda.Alias;
+  readonly addArticleFn: lambda.Alias;
 
   constructor(scope: cdk.Construct, id: string) {
     super(scope, id);
@@ -84,7 +85,25 @@ export class CoreConstruct extends cdk.Construct {
     });
     articlesTable.grantReadWriteData(clapsFn);
 
+    const addArticleFn = new lambda.Function(this, 'AddArticleFn', {
+      code: new lambda.AssetCode('../articlefn/articlefn'),
+      handler: 'add.handler',
+      runtime: lambda.Runtime.PYTHON_3_8,
+      description: 'Function to add an article',
+      logRetention: logs.RetentionDays.TWO_WEEKS,
+      tracing: lambda.Tracing.PASS_THROUGH,
+      environment: {
+        articleTable: articlesTable.tableName,
+      },
+    });
+    const addArticleFnLive = new lambda.Alias(addArticleFn, 'Live', {
+      aliasName: 'live',
+      version: addArticleFn.currentVersion,
+    });
+    articlesTable.grantReadWriteData(addArticleFn);
+
     this.articlesTable = articlesTable;
     this.clapsFn = clapsFnLive;
+    this.addArticleFn = addArticleFnLive;
   }
 }

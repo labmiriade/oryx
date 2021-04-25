@@ -14,6 +14,7 @@ export interface PublicApiConstructProps {
   articlesTable: dynamodb.Table;
   userPool: cognito.IUserPool;
   clapsFn: lambda.Alias;
+  addArticleFn: lambda.Alias;
 }
 
 export class PublicApiConstruct extends cdk.Construct {
@@ -92,49 +93,25 @@ export class PublicApiConstruct extends cdk.Construct {
     });
 
     // POST /articles
-    const postArticle = new apigateway.AwsIntegration({
-      service: 'dynamodb',
-      action: 'PutItem',
-      options: {
-        credentialsRole: articlesTableReadWriteRole,
-        passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
-        requestTemplates: {
-          'application/json': JSON.stringify({
-            TableName: props.articlesTable.tableName,
-            Item: {
-              pk: { S: '$context.requestId' },
-              sk: { S: 'ART' },
-              link: { S: "$input.path('$.link')" },
-              // until title will be auto populated, take the link and strip the first 8 characters
-              title: { S: "$input.path('$.link').substring(8)" },
-              referrer: { S: '$context.authorizer.claims.email' },
-              enriched: { BOOL: false },
-              claps: { N: '0' },
-              clappers: { N: '0' },
-              date: { S: '$context.requestTimeEpoch' },
-              gsi1sk: { S: '$context.requestTimeEpoch' },
-              type: { S: 'ART' },
-            },
-          }),
-        },
-        integrationResponses: [
-          {
-            statusCode: '201',
-            responseTemplates: {
-              'application/json': postArticleResponseTemplate,
-            },
+    const postArticle = new apigateway.LambdaIntegration(props.addArticleFn, {
+      proxy: false,
+      requestTemplates: {
+        'application/json': JSON.stringify({
+          article: {
+            id: '$context.requestId',
+            link: "$input.path('$.link')",
+            referrer: '$context.authorizer.claims.email',
           },
-          {
-            statusCode: '404',
-            selectionPattern: '404',
-            responseTemplates: {
-              'application/json': JSON.stringify({
-                message: `article "$input.params('articleId')" not found`,
-              }),
-            },
-          },
-        ],
+        }),
       },
+      integrationResponses: [
+        {
+          statusCode: '201',
+          responseTemplates: {
+            'application/json': postArticleResponseTemplate,
+          },
+        },
+      ],
     });
     const requestArticleModel = api.addModel('ReqArticle', {
       schema: {
@@ -385,10 +362,7 @@ const articleResponseTemplate = `
 
 const postArticleResponseTemplate = `
 #set( $context.responseOverride.header.Location = "/articles/$context.requestId" )
-{
-  "id": "$context.requestId",
-  "date": "$context.requestTimeEpoch"
-}
+$input.body
 `;
 
 const clapsResponseTemplate = `
