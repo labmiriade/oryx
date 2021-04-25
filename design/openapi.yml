@@ -49,7 +49,7 @@ paths:
                   type:
                     $ref: '#/components/schemas/Article'
 
-  /article/{articleId}:
+  /articles/{articleId}:
     parameters:
       - in: path
         name: articleId
@@ -72,8 +72,16 @@ paths:
                 properties:
                   type:
                     $ref: '#/components/schemas/Article'
+    delete:
+      tags: [Registered Users]
+      summary: Removes the selected article
+      description: >-
+        Removes the selected article if the user created it
+      responses:
+        204:
+          description: OK
 
-  /article/{articleId}/claps:
+  /articles/{articleId}/claps:
     parameters:
       - in: path
         name: articleId
