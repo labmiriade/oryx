@@ -248,6 +248,51 @@ export class PublicApiConstruct extends cdk.Construct {
       authorizer: cognitoAuthz,
     });
 
+    // POST /articles/{articleId}/pings
+    const pings = article.addResource('pings');
+    const pingInteg = new apigateway.AwsIntegration({
+      service: 'dynamodb',
+      action: 'UpdateItem',
+      options: {
+        credentialsRole: articlesTableReadWriteRole,
+        passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
+        requestTemplates: {
+          'text/ping': JSON.stringify({
+            TableName: props.articlesTable.tableName,
+            Key: {
+              pk: { S: "$input.params('articleId')" },
+              sk: { S: 'ART' },
+            },
+            ExpressionAttributeNames: {
+              '#pings': 'pings',
+            },
+            ExpressionAttributeValues: {
+              ':one': { N: '1' },
+            },
+            UpdateExpression: 'SET #pings = #pings + :one',
+          }),
+        },
+        integrationResponses: [
+          {
+            statusCode: '204',
+            responseTemplates: {
+              'application/json': '',
+            },
+          },
+        ],
+      },
+    });
+    pings.addMethod('POST', pingInteg, {
+      methodResponses: [
+        {
+          statusCode: '204',
+          responseModels: {
+            'application/json': apigateway.Model.EMPTY_MODEL,
+          },
+        },
+      ],
+    });
+
     // PUT /articles/{articleId}/claps
     const claps = article.addResource('claps');
     const putClaps = new apigateway.LambdaIntegration(props.clapsFn);
