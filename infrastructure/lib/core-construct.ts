@@ -8,6 +8,7 @@ export class CoreConstruct extends cdk.Construct {
   readonly articlesTable: dynamodb.Table;
   readonly clapsFn: lambda.Alias;
   readonly addArticleFn: lambda.Alias;
+  readonly googleChatFn: lambda.Alias;
 
   constructor(scope: cdk.Construct, id: string) {
     super(scope, id);
@@ -102,8 +103,26 @@ export class CoreConstruct extends cdk.Construct {
     });
     articlesTable.grantReadWriteData(addArticleFn);
 
+    const googleChatFn = new lambda.Function(this, 'GoogleChatFn', {
+      code: new lambda.AssetCode('../google-chat/google_chat'),
+      handler: 'main.handler',
+      runtime: lambda.Runtime.PYTHON_3_8,
+      description: 'Function to add handle google chat bot requests',
+      logRetention: logs.RetentionDays.TWO_WEEKS,
+      tracing: lambda.Tracing.PASS_THROUGH,
+      environment: {
+        addArticleFn: addArticleFnLive.functionArn,
+      },
+    });
+    const googleChatFnLive = new lambda.Alias(googleChatFn, 'Live', {
+      aliasName: 'live',
+      version: googleChatFn.currentVersion,
+    });
+    addArticleFnLive.grantInvoke(googleChatFn);
+
     this.articlesTable = articlesTable;
     this.clapsFn = clapsFnLive;
     this.addArticleFn = addArticleFnLive;
+    this.googleChatFn = googleChatFnLive;
   }
 }

@@ -34,7 +34,7 @@ def handler(event, context, articletable) -> Article:
 def _article_from_input(a: Dict[str, Any]) -> Article:
     now = datetime.datetime.utcnow().isoformat()
     aux = {
-        "pk": a.get('id') or uuid.uuid4(),
+        "pk": a.get('id') or str(uuid.uuid4()),
         "sk": ARTICLE_SK,
         "link": a['link'],
         "title": a.get('title') or a['link'].split('://')[1],

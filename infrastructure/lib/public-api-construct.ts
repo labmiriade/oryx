@@ -15,6 +15,7 @@ export interface PublicApiConstructProps {
   userPool: cognito.IUserPool;
   clapsFn: lambda.Alias;
   addArticleFn: lambda.Alias;
+  googleChatFn: lambda.Alias;
 }
 
 export class PublicApiConstruct extends cdk.Construct {
@@ -69,6 +70,7 @@ export class PublicApiConstruct extends cdk.Construct {
             ExpressionAttributeNames: { '#type': 'type' },
             ExpressionAttributeValues: { ':art': { S: 'ART' } },
             Limit: 30,
+            ScanIndexForward: false,
           }),
         },
         integrationResponses: [
@@ -316,6 +318,12 @@ export class PublicApiConstruct extends cdk.Construct {
       ],
       authorizer: cognitoAuthz,
     });
+
+    // handle chat requests
+    const chats = api.root.addResource('chats');
+    const google = chats.addResource('google');
+    const googleChatInteg = new apigateway.LambdaIntegration(props.googleChatFn);
+    google.addMethod('POST', googleChatInteg);
   }
 }
 
