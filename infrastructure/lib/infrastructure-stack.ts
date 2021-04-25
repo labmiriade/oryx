@@ -20,6 +20,8 @@ export class InfrastructureStack extends cdk.Stack {
       articlesTable: coreConstruct.articlesTable,
       userPool,
       clapsFn: coreConstruct.clapsFn,
+      addArticleFn: coreConstruct.addArticleFn,
+      googleChatFn: coreConstruct.googleChatFn,
     });
   }
 }

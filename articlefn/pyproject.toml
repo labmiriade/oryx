@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "articlefn"
+version = "0.1.0"
+description = ""
+authors = ["Tommaso Panozzo <t.panozzo@miriade.it>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+boto3 = "^1.17.57"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
