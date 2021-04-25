@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as apigateway from '@aws-cdk/aws-apigateway';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as cognito from '@aws-cdk/aws-cognito';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as iam from '@aws-cdk/aws-iam';
 
@@ -11,6 +12,8 @@ export interface PublicApiConstructProps {
    */
   corsOrigins?: string[];
   articlesTable: dynamodb.Table;
+  userPool: cognito.IUserPool;
+  clapsFn: lambda.Alias;
 }
 
 export class PublicApiConstruct extends cdk.Construct {
@@ -31,6 +34,11 @@ export class PublicApiConstruct extends cdk.Construct {
         throttlingBurstLimit: 50,
         tracingEnabled: true,
       },
+      description: 'Oryx News Aggregator Public REST Gateway',
+    });
+
+    const cognitoAuthz = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthz', {
+      cognitoUserPools: [props.userPool],
     });
 
     const fullValidator = api.addRequestValidator('BodyValidator', {
@@ -95,13 +103,14 @@ export class PublicApiConstruct extends cdk.Construct {
             TableName: props.articlesTable.tableName,
             Item: {
               pk: { S: '$context.requestId' },
-              sk: { S: '0INFO' },
+              sk: { S: 'ART' },
               link: { S: "$input.path('$.link')" },
               // until title will be auto populated, take the link and strip the first 8 characters
               title: { S: "$input.path('$.link').substring(8)" },
-              referrer: { S: 'anonymous' },
+              referrer: { S: '$context.authorizer.claims.email' },
               enriched: { BOOL: false },
-              upvotes: { N: '0' },
+              claps: { N: '0' },
+              clappers: { N: '0' },
               date: { S: '$context.requestTimeEpoch' },
               gsi1sk: { S: '$context.requestTimeEpoch' },
               type: { S: 'ART' },
@@ -136,6 +145,7 @@ export class PublicApiConstruct extends cdk.Construct {
             pattern: 'https?://[-a-zA-Z0-9@:%._+~#=]{1,256}.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?/&=]*)',
           },
         },
+        additionalProperties: false,
       },
     });
     articles.addMethod('POST', postArticle, {
@@ -151,6 +161,7 @@ export class PublicApiConstruct extends cdk.Construct {
         'application/json': requestArticleModel,
       },
       requestValidator: fullValidator,
+      authorizer: cognitoAuthz,
     });
 
     // GET /articles/{articleId}
@@ -167,7 +178,7 @@ export class PublicApiConstruct extends cdk.Construct {
             ConsistentRead: false,
             Key: {
               pk: { S: "$input.params('articleId')" },
-              sk: { S: '0INFO' },
+              sk: { S: 'ART' },
             },
           }),
         },
@@ -206,6 +217,128 @@ export class PublicApiConstruct extends cdk.Construct {
         },
       ],
     });
+
+    // DELETE /articles/{articleId}
+    const deleteArticle = new apigateway.AwsIntegration({
+      service: 'dynamodb',
+      action: 'DeleteItem',
+      options: {
+        credentialsRole: articlesTableReadWriteRole,
+        passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
+        requestTemplates: {
+          'application/json': JSON.stringify({
+            TableName: props.articlesTable.tableName,
+            Key: {
+              pk: { S: "$input.params('articleId')" },
+              sk: { S: 'ART' },
+            },
+            ConditionExpression: '#referrer = :caller',
+            ExpressionAttributeNames: {
+              '#referrer': 'referrer',
+            },
+            ExpressionAttributeValues: {
+              ':caller': { S: '$context.authorizer.claims.email' },
+            },
+          }),
+        },
+        integrationResponses: [
+          {
+            statusCode: '204',
+            responseTemplates: {
+              'application/json': '',
+            },
+          },
+        ],
+      },
+    });
+    article.addMethod('DELETE', deleteArticle, {
+      methodResponses: [
+        {
+          statusCode: '204',
+          responseModels: {
+            'application/json': apigateway.Model.EMPTY_MODEL,
+          },
+        },
+        {
+          statusCode: '403',
+          responseModels: {
+            'application/json': apigateway.Model.ERROR_MODEL,
+          },
+        },
+      ],
+      authorizer: cognitoAuthz,
+    });
+
+    // PUT /articles/{articleId}/claps
+    const claps = article.addResource('claps');
+    const putClaps = new apigateway.LambdaIntegration(props.clapsFn);
+    const requestClapsModel = api.addModel('ReqClaps', {
+      schema: {
+        type: apigateway.JsonSchemaType.OBJECT,
+        properties: {
+          claps: {
+            type: apigateway.JsonSchemaType.NUMBER,
+            minimum: 0,
+            maximum: 100,
+          },
+        },
+        additionalProperties: false,
+      },
+    });
+    claps.addMethod('PUT', putClaps, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseModels: {
+            'application/json': apigateway.Model.EMPTY_MODEL,
+          },
+        },
+      ],
+      requestModels: {
+        'application/json': requestClapsModel,
+      },
+      requestValidator: fullValidator,
+      authorizer: cognitoAuthz,
+    });
+
+    // GET /articles/{articleId}/claps
+    const getClaps = new apigateway.AwsIntegration({
+      service: 'dynamodb',
+      action: 'GetItem',
+      options: {
+        credentialsRole: articlesTableReadWriteRole,
+        passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
+        requestTemplates: {
+          'application/json': JSON.stringify({
+            TableName: props.articlesTable.tableName,
+            ConsistentRead: false,
+            Key: {
+              pk: { S: "$input.params('articleId')" },
+              sk: { S: 'CLAPS#$context.authorizer.claims.email' },
+            },
+          }),
+        },
+        integrationResponses: [
+          {
+            statusCode: '200',
+            responseTemplates: {
+              'application/json': clapsResponseTemplate,
+            },
+          },
+        ],
+      },
+    });
+    claps.addMethod('GET', getClaps, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseModels: {
+            'application/json': apigateway.Model.EMPTY_MODEL,
+          },
+        },
+      ],
+      authorizer: cognitoAuthz,
+    });
   }
 }
 
@@ -218,8 +351,9 @@ const articlesResponseTemplate = `
       "id": "$item.pk.S",
       "title": #if($item.title.S == '') "$item.link.S" #else "$item.title.S" #end,
       "link": "$item.link.S",
-      "tags": #if($item.tags.SS == '') [] #else "$item.tags.SS" #end,
-      "upvotes": $item.upvotes.N,
+      "tags": #if($item.tags.SS == '') [] #else $item.tags.SS #end,
+      "claps": $item.claps.N,
+      "clappers": $item.clappers.N,
       "referrer": "$item.referrer.S",
       "date": "$item.date.S"
     }#if($foreach.hasNext),#end
@@ -233,15 +367,16 @@ const articleResponseTemplate = `
 #if ( "$item" == "" )
 #set( $context.responseOverride.status = 404 )
 {
-  "message": "article $input.params('bookingId') not found"
+  "message": "article $input.params('articleId') not found"
 }
 #else
 {
   "id": "$item.pk.S",
   "title": #if($item.title.S == '') "$item.link.S" #else "$item.title.S" #end,
   "link": "$item.link.S",
-  "tags": #if($item.tags.SS == '') [] #else "$item.tags.SS" #end,
-  "upvotes": $item.upvotes.N,
+  "tags": #if($item.tags.SS == '') [] #else $item.tags.SS #end,
+  "claps": $item.claps.N,
+  "clappers": $item.clappers.N,
   "referrer": "$item.referrer.S",
   "date": "$item.date.S"
 }
@@ -254,4 +389,22 @@ const postArticleResponseTemplate = `
   "id": "$context.requestId",
   "date": "$context.requestTimeEpoch"
 }
+`;
+
+const clapsResponseTemplate = `
+#set( $item = $input.path('$.Item') )
+#if ( "$item" == "" )
+{
+  "id": "$input.params('articleId')",
+  "caller": "$context.authorizer.claims.email",
+  "claps": 0
+}
+#else
+{
+  "id": "$input.params('articleId')",
+  "caller": "$context.authorizer.claims.email",
+  "claps": $item.claps.N,
+  "date": "$item.datetime.S"
+}
+#end
 `;

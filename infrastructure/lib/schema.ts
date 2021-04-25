@@ -64,6 +64,60 @@ export interface paths {
       };
     };
   };
+  '/article/{articleId}/claps': {
+    /** Returns the number of claps the user gave to the specified article. */
+    get: {
+      parameters: {
+        path: {
+          articleId: string;
+        };
+      };
+      responses: {
+        /** OK */
+        200: {
+          content: {
+            'application/json': {
+              /** the article claps refer to */
+              id: string;
+              /** the user making the call */
+              caller: string;
+              /** The number of claps the user gave to the article, zero if not called yet */
+              claps: number;
+              /** The last time claps where modified by this user */
+              date?: string;
+            };
+          };
+        };
+      };
+    };
+    /** Set the claps from the user for the chosen article. To remove all claps, simply send "claps": 0 */
+    put: {
+      parameters: {
+        path: {
+          articleId: string;
+        };
+      };
+      responses: {
+        200: components['responses']['PutClaps'];
+        201: components['responses']['PutClaps'];
+        /** Article not found */
+        404: unknown;
+      };
+      /** The number of claps the user gives to the article */
+      requestBody: {
+        content: {
+          'application/json': {
+            claps?: number;
+          };
+        };
+      };
+    };
+    parameters: {
+      path: {
+        articleId: string;
+      };
+    };
+  };
 }
 
 export interface components {
@@ -78,6 +132,17 @@ export interface components {
       date?: string;
       tags?: string[];
       upvotes: number;
+    };
+  };
+  responses: {
+    /** The response to a PUT claps request */
+    PutClaps: {
+      content: {
+        'application/json': {
+          caller?: string;
+          claps?: number;
+        };
+      };
     };
   };
   requestBodies: {
