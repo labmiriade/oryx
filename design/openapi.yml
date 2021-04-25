@@ -148,6 +148,26 @@ paths:
         404:
           description: Article not found
 
+  /articles/{articleId}/pings:
+    parameters:
+      - in: path
+        name: articleId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Public, Internal]
+      summary: Receives HTML a ping calls
+      description: >-
+        This endpoint is meant to be used in the "ping" attribute
+        of the "a" tag driving the user to the article. Like:
+        "<a href="<articleLink>" ping=".../articles/{articleId}/pings>"
+        to track clicks to the articles
+      responses:
+        204:
+          description: OK
+
 components:
   schemas:
     Article:

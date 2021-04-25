@@ -42,6 +42,7 @@ def _article_from_input(a: Dict[str, Any]) -> Article:
         "enriched": False,
         "claps": a.get('claps') or 0,
         "clappers": a.get('clappers') or 0,
+        "pings": 0,
         "date": now,
         "gsi1sk": now,
         "type": ARTICLE_TYPE,
