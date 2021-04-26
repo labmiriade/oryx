@@ -1,7 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-function Voter({ story }) {
+type VoterProps = {
+story: any
+}
+
+function Voter({ story }: VoterProps) {
   const user = null; // current user
 
   return (

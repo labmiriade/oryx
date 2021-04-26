@@ -1,6 +1,10 @@
 import React from 'react';
 
-function Avatar({ username }) {
+type AvatarProps = {
+  username: string
+}
+
+function Avatar({ username }: AvatarProps) {
   const [imgSrc, setImgSrc] = React.useState(username);
 
   React.useEffect(() => {

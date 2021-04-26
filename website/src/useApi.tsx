@@ -16,13 +16,13 @@ function useApi() {
           data.items = data.items.map(transformStory);
           return data;
         }),
-    getArticle: (id) => instance.get(`/article/${id}`).then((response) => response.data),
+    getArticle: (id: string) => instance.get(`/article/${id}`).then((response) => response.data),
   };
 }
 
 export default useApi;
 
-function transformStory(original) {
+function transformStory(original: any): any {
   return {
     short_id: original.id,
     vote: [],
@@ -55,7 +55,7 @@ function transformStory(original) {
         .replace(/https:\/\/(www.){0,1}/, '')
         .split(/[/?#]/)[0],
     },
-    tags: original.tags.map((tag) => ({
+    tags: original.tags.map((tag: string) => ({
       tag: tag,
       description: 'Use when every tag or no specific tag applies',
       css_class: `tag tag_${tag}`,
@@ -63,7 +63,7 @@ function transformStory(original) {
     markeddown_description: {
       present: false,
     },
-    show_score_to_user: (user) => true,
-    can_be_seen_by_user: (user) => true,
+    show_score_to_user: (user: any) => true,
+    can_be_seen_by_user: (user: any) => true,
   };
 }

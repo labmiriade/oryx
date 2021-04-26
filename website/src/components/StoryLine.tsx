@@ -8,8 +8,12 @@ import { Link } from 'react-router-dom';
 import Voter from '../atoms/Voter';
 import { API_URL } from '../environment';
 
-function StoryLine({ story }) {
-  const [createdAt, setCreatedAt] = useState(null);
+type StoryLineProps = {
+  story: any
+  }
+
+function StoryLine({ story }: StoryLineProps) {
+  const [createdAt, setCreatedAt] = useState<Date | null>(null);
   const vote = 0;
 
   React.useEffect(() => {
@@ -43,7 +47,7 @@ function StoryLine({ story }) {
             </a>
           </span>
           <span className="tags">
-            {story.tags.map((tag, i) => (
+            {story.tags.map((tag: any, i: number) => (
               <a key={i} className={tag.css_class} title={tag.description} href={'/t/' + tag.tag}>
                 {tag.tag}
               </a>
@@ -83,7 +87,7 @@ function StoryLine({ story }) {
       </div>
       <a
         href={story.comments_path}
-        className={'mobile_comments ' + story.comments_count === 0 ? 'zero' : ''}
+        className={'mobile_comments ' + (story.comments_count === 0 ? 'zero' : '')}
         style={{ display: 'none' }}
       >
         <span>{story.comments_count}</span>
