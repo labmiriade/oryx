@@ -19,6 +19,12 @@ paths:
           schema:
             type: string
           description: the max number of items returned
+        - in: query
+          name: nextToken
+          required: false
+          schema:
+            type: string
+          description: the token returned by previous call for pagination
       responses:
         200:
           description: OK
@@ -26,7 +32,11 @@ paths:
             'application/json':
               schema:
                 type: object
+                required: [items]
                 properties:
+                  nextToken:
+                    type: string
+                    description: the token for querying the next page, if any
                   items:
                     type: array
                     items:
@@ -172,7 +182,7 @@ components:
   schemas:
     Article:
       type: object
-      required: [id, link, title, upvotes]
+      required: [id, link, title, claps, clappers]
       properties:
         id:
           type: string
@@ -188,15 +198,18 @@ components:
           description: who linked the article
         date:
           type: string
-          format: '\d{13}'
+          format: date-time
           description: >-
-            the date in epoch timestamp (millisecond since GMT 1970-01-01)
+            the date the article was submitted ISO8601 (RFC3339)
         tags:
           type: array
           items:
             type: string
           example: [devops, docker]
-        upvotes:
+        claps:
+          type: integer
+          minimum: 0
+        clappers:
           type: integer
           minimum: 0
   requestBodies:
