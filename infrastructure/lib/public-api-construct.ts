@@ -54,6 +54,20 @@ export class PublicApiConstruct extends cdk.Construct {
     });
     props.articlesTable.grantReadWriteData(articlesTableReadWriteRole);
 
+    // define useful constants for enabling CORS
+    // const corsIntegResponseParameters = undefined;
+    const corsIntegResponseParameters = {
+      'method.response.header.Access-Control-Allow-Headers': `'Content-Type,X-Amz-Date,Authorization,X-Api-Key'`,
+      'method.response.header.Access-Control-Allow-Methods': `'*'`,
+      'method.response.header.Access-Control-Allow-Origin': `'*'`,
+    };
+    const corsMethodResponseParameters = {
+      'method.response.header.Access-Control-Allow-Headers': true,
+      'method.response.header.Access-Control-Allow-Methods': true,
+      'method.response.header.Access-Control-Allow-Credentials': true,
+      'method.response.header.Access-Control-Allow-Origin': true,
+    };
+
     // create the lambda to answer to public apis
     const articles = api.root.addResource('articles');
     const getArticles = new apigateway.AwsIntegration({
@@ -63,21 +77,18 @@ export class PublicApiConstruct extends cdk.Construct {
         credentialsRole: articlesTableReadWriteRole,
         passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
         requestTemplates: {
-          'application/json': JSON.stringify({
-            TableName: props.articlesTable.tableName,
-            IndexName: 'GSI1',
-            KeyConditionExpression: '#type = :art',
-            ExpressionAttributeNames: { '#type': 'type' },
-            ExpressionAttributeValues: { ':art': { S: 'ART' } },
-            Limit: 30,
-            ScanIndexForward: false,
-          }),
+          'application/json': articleRequestTemplate(props.articlesTable.tableName),
         },
         integrationResponses: [
           {
             statusCode: '200',
             responseTemplates: {
               'application/json': articlesResponseTemplate,
+            },
+            responseParameters: {
+              'method.response.header.Access-Control-Allow-Headers': `'Content-Type,X-Amz-Date,Authorization,X-Api-Key'`,
+              'method.response.header.Access-Control-Allow-Methods': `'*'`,
+              'method.response.header.Access-Control-Allow-Origin': `'*'`,
             },
           },
         ],
@@ -90,6 +101,7 @@ export class PublicApiConstruct extends cdk.Construct {
           responseModels: {
             'application/json': apigateway.Model.EMPTY_MODEL,
           },
+          responseParameters: corsMethodResponseParameters,
         },
       ],
     });
@@ -112,6 +124,7 @@ export class PublicApiConstruct extends cdk.Construct {
           responseTemplates: {
             'application/json': postArticleResponseTemplate,
           },
+          responseParameters: corsIntegResponseParameters,
         },
       ],
     });
@@ -134,6 +147,7 @@ export class PublicApiConstruct extends cdk.Construct {
           responseModels: {
             'application/json': apigateway.Model.EMPTY_MODEL,
           },
+          responseParameters: corsMethodResponseParameters,
         },
       ],
       requestModels: {
@@ -167,6 +181,7 @@ export class PublicApiConstruct extends cdk.Construct {
             responseTemplates: {
               'application/json': articleResponseTemplate,
             },
+            responseParameters: corsIntegResponseParameters,
           },
           {
             statusCode: '404',
@@ -176,6 +191,7 @@ export class PublicApiConstruct extends cdk.Construct {
                 message: `article "$input.params('articleId')" not found`,
               }),
             },
+            responseParameters: corsIntegResponseParameters,
           },
         ],
       },
@@ -187,12 +203,14 @@ export class PublicApiConstruct extends cdk.Construct {
           responseModels: {
             'application/json': apigateway.Model.EMPTY_MODEL,
           },
+          responseParameters: corsMethodResponseParameters,
         },
         {
           statusCode: '404',
           responseModels: {
             'application/json': apigateway.Model.ERROR_MODEL,
           },
+          responseParameters: corsMethodResponseParameters,
         },
       ],
     });
@@ -226,6 +244,7 @@ export class PublicApiConstruct extends cdk.Construct {
             responseTemplates: {
               'application/json': '',
             },
+            responseParameters: corsIntegResponseParameters,
           },
         ],
       },
@@ -237,12 +256,14 @@ export class PublicApiConstruct extends cdk.Construct {
           responseModels: {
             'application/json': apigateway.Model.EMPTY_MODEL,
           },
+          responseParameters: corsMethodResponseParameters,
         },
         {
           statusCode: '403',
           responseModels: {
             'application/json': apigateway.Model.ERROR_MODEL,
           },
+          responseParameters: corsMethodResponseParameters,
         },
       ],
       authorizer: cognitoAuthz,
@@ -278,6 +299,7 @@ export class PublicApiConstruct extends cdk.Construct {
             responseTemplates: {
               'application/json': '',
             },
+            responseParameters: corsIntegResponseParameters,
           },
         ],
       },
@@ -289,13 +311,16 @@ export class PublicApiConstruct extends cdk.Construct {
           responseModels: {
             'application/json': apigateway.Model.EMPTY_MODEL,
           },
+          responseParameters: corsMethodResponseParameters,
         },
       ],
     });
 
     // PUT /articles/{articleId}/claps
     const claps = article.addResource('claps');
-    const putClaps = new apigateway.LambdaIntegration(props.clapsFn);
+    const putClaps = new apigateway.LambdaIntegration(props.clapsFn, {
+      // requestParameters: corsIntegResponseParameters,
+    });
     const requestClapsModel = api.addModel('ReqClaps', {
       schema: {
         type: apigateway.JsonSchemaType.OBJECT,
@@ -316,6 +341,7 @@ export class PublicApiConstruct extends cdk.Construct {
           responseModels: {
             'application/json': apigateway.Model.EMPTY_MODEL,
           },
+          responseParameters: corsMethodResponseParameters,
         },
       ],
       requestModels: {
@@ -348,6 +374,7 @@ export class PublicApiConstruct extends cdk.Construct {
             responseTemplates: {
               'application/json': clapsResponseTemplate,
             },
+            responseParameters: corsIntegResponseParameters,
           },
         ],
       },
@@ -359,6 +386,7 @@ export class PublicApiConstruct extends cdk.Construct {
           responseModels: {
             'application/json': apigateway.Model.EMPTY_MODEL,
           },
+          responseParameters: corsMethodResponseParameters,
         },
       ],
       authorizer: cognitoAuthz,
@@ -372,9 +400,35 @@ export class PublicApiConstruct extends cdk.Construct {
   }
 }
 
+function articleRequestTemplate(tableName: string): string {
+  return `
+#set( $nextToken = $input.params('nextToken') )
+#set( $limit = $input.params('limit') )
+#if( "$limit" == "" || $limit.matches("^\\d+$") || $limit < 0 || $limit > 30 )
+  #set( $limit = 30 )
+#end
+{
+  "TableName":"NewsAggregator-CoreArticlesTableC749F523-4U6EAER1HQ8P",
+  "IndexName":"GSI1",
+  "KeyConditionExpression":"#type = :art",
+  "ExpressionAttributeNames":{"#type":"type"},
+  "ExpressionAttributeValues":{":art":{"S":"ART"}},
+  "ScanIndexForward":false,
+#if( $nextToken != "" )
+  "ExclusiveStartKey": $util.base64Decode($nextToken),
+#end
+  "Limit": $limit
+}  
+`;
+}
+
 const articlesResponseTemplate = `
 #set( $items = $input.path('$.Items') )
+#set( $lastKey = $input.json('$.LastEvaluatedKey') )
 {
+  #if( $lastKey != "" && $lastKey != '""')
+  "nextToken": "$util.base64Encode($lastKey)",
+#end
   "items":[
     #foreach($item in $items)
     {

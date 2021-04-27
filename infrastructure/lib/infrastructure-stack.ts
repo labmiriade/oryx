@@ -1,11 +1,12 @@
 import * as cdk from '@aws-cdk/core';
 import * as cognito from '@aws-cdk/aws-cognito';
-import { ClientConstruct } from './client-construct';
+import { ClientConstruct, ClientConstructProps } from './client-construct';
 import { PublicApiConstruct } from './public-api-construct';
 import { CoreConstruct } from './core-construct';
 
 export interface InfrastructurePropsStack extends cdk.StackProps {
   userPoolArn: string;
+  webApp: ClientConstructProps;
 }
 
 export class InfrastructureStack extends cdk.Stack {
@@ -13,7 +14,7 @@ export class InfrastructureStack extends cdk.Stack {
     super(scope, id, props);
 
     // create the client infrastructure
-    // new ClientConstruct(this, 'Client');
+    new ClientConstruct(this, 'Client', props.webApp);
     const coreConstruct = new CoreConstruct(this, 'Core');
     const userPool = cognito.UserPool.fromUserPoolArn(this, 'UserPool', props?.userPoolArn);
     new PublicApiConstruct(this, 'PublicApi', {
