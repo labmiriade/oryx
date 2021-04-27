@@ -77,15 +77,7 @@ export class PublicApiConstruct extends cdk.Construct {
         credentialsRole: articlesTableReadWriteRole,
         passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
         requestTemplates: {
-          'application/json': JSON.stringify({
-            TableName: props.articlesTable.tableName,
-            IndexName: 'GSI1',
-            KeyConditionExpression: '#type = :art',
-            ExpressionAttributeNames: { '#type': 'type' },
-            ExpressionAttributeValues: { ':art': { S: 'ART' } },
-            Limit: 30,
-            ScanIndexForward: false,
-          }),
+          'application/json': articleRequestTemplate(props.articlesTable.tableName),
         },
         integrationResponses: [
           {
@@ -408,9 +400,35 @@ export class PublicApiConstruct extends cdk.Construct {
   }
 }
 
+function articleRequestTemplate(tableName: string): string {
+  return `
+#set( $nextToken = $input.params('nextToken') )
+#set( $limit = $input.params('limit') )
+#if( "$limit" == "" || $limit.matches("^\\d+$") || $limit < 0 || $limit > 30 )
+  #set( $limit = 30 )
+#end
+{
+  "TableName":"NewsAggregator-CoreArticlesTableC749F523-4U6EAER1HQ8P",
+  "IndexName":"GSI1",
+  "KeyConditionExpression":"#type = :art",
+  "ExpressionAttributeNames":{"#type":"type"},
+  "ExpressionAttributeValues":{":art":{"S":"ART"}},
+  "ScanIndexForward":false,
+#if( $nextToken != "" )
+  "ExclusiveStartKey": $util.base64Decode($nextToken),
+#end
+  "Limit": $limit
+}  
+`;
+}
+
 const articlesResponseTemplate = `
 #set( $items = $input.path('$.Items') )
+#set( $lastKey = $input.json('$.LastEvaluatedKey') )
 {
+  #if( $lastKey != "" && $lastKey != '""')
+  "nextToken": "$util.base64Encode($lastKey)",
+#end
   "items":[
     #foreach($item in $items)
     {
