@@ -26,6 +26,10 @@ class NotAMessageException(Exception):
     pass
 
 
+class AddedToSpaceException(Exception):
+    pass
+
+
 class ErrorSavingLink(Exception):
 
     def __init__(self, *args: object, err: str, res: Dict) -> None:
@@ -62,7 +66,7 @@ def handler(event, context, lmbda):
         body = {
             "text": "Ciao, mi dispiace ma non sono ancora abilitata a funzionare nei gruppi 🐮",
         }
-    except NoLinkException:
+    except (NoLinkException, AddedToSpaceException):
         body = {
             "text": "Ciao, mandami pure il link che vuoi caricare su Mucca, il news aggregator di Miriade! 🐮",
         }
@@ -97,7 +101,10 @@ link_re = r'(https?://[-a-zA-Z0-9@:%._+~#=]{1,256}.[a-zA-Z0-9\(\)]{1,6}\b[-a-zA-
 
 
 def _article_from_event(event: Dict[str, Any]) -> Article:
-    if event['type'] != 'MESSAGE':
+    if event['type'] == 'ADDED_TO_SPACE':
+        print(f'added to space!')
+        raise AddedToSpaceException()
+    elif event['type'] != 'MESSAGE':
         print(f'event {event=} is not a message')
         raise NotAMessageException()
     elif not event['space']['singleUserBotDm']:
