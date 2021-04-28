@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import classNames from 'classnames';
 import formatDistanceToNow from 'date-fns/formatDistanceToNow';
 import formatISO from 'date-fns/formatISO';
-import Avatar from '../atoms/Avatar';
 import { parseISO } from 'date-fns';
 import { Link } from 'react-router-dom';
 import Voter from '../atoms/Voter';
@@ -10,7 +9,7 @@ import { API_URL } from '../environment';
 
 type StoryLineProps = {
   story: any
-  }
+}
 
 function StoryLine({ story }: StoryLineProps) {
   const [createdAt, setCreatedAt] = useState<Date | null>(null);
@@ -60,7 +59,9 @@ function StoryLine({ story }: StoryLineProps) {
           )}
 
           <div className="byline">
+            {/*
             <Avatar username={story.user.username} />
+            */}
             {story.user_is_author ? 'authored by ' : 'via '}
             <Link to={'/u/' + story.user.username} className={'u-author h-card ' + story.html_class_for_user}>
               {story.user.username}
