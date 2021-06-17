@@ -404,7 +404,7 @@ function articleRequestTemplate(tableName: string): string {
   return `
 #set( $nextToken = $input.params('nextToken') )
 #set( $limit = $input.params('limit') )
-#if( "$limit" == "" || $limit.matches("^\\d+$") || $limit < 0 || $limit > 30 )
+#if( "$limit" == "" || $limit.matches("^\\\\d+$") || $limit < 0 || $limit > 30 )
   #set( $limit = 30 )
 #end
 {
@@ -438,6 +438,7 @@ const articlesResponseTemplate = `
       "tags": #if($item.tags.SS == '') [] #else $item.tags.SS #end,
       "claps": $item.claps.N,
       "clappers": $item.clappers.N,
+      "views": $item.pings.N,
       "referrer": "$item.referrer.S",
       "date": "$item.date.S"
     }#if($foreach.hasNext),#end
@@ -461,6 +462,7 @@ const articleResponseTemplate = `
   "tags": #if($item.tags.SS == '') [] #else $item.tags.SS #end,
   "claps": $item.claps.N,
   "clappers": $item.clappers.N,
+  "views": $item.pings.N,
   "referrer": "$item.referrer.S",
   "date": "$item.date.S"
 }
