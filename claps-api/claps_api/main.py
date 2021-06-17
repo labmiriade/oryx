@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import json
 import os
 from functools import wraps
@@ -54,7 +54,7 @@ def handler(event, context, b: Bootstrap) -> APIResponse:
                 "pk": articleid,
                 "sk": f'CLAPS#{caller}',
                 "claps": claps,
-                "datetime": datetime.datetime.utcnow().isoformat(),
+                "datetime": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
             },
             ReturnValues="ALL_OLD",
         )

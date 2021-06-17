@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import os
 import uuid
 from functools import wraps
@@ -32,7 +32,7 @@ def handler(event, context, articletable) -> Article:
 
 
 def _article_from_input(a: Dict[str, Any]) -> Article:
-    now = datetime.datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
     aux = {
         "pk": a.get('id') or str(uuid.uuid4()),
         "sk": ARTICLE_SK,

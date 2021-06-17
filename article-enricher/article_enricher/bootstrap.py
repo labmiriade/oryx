@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 from functools import wraps
 import os
 
@@ -27,7 +27,7 @@ def add_bootstrap(f):
     dynamodb_res = boto3.resource("dynamodb")
     table = dynamodb_res.Table(table_name)
     dynamodb = boto3.client("dynamodb")
-    exec_time = datetime.datetime.utcnow().isoformat()
+    exec_time = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
     b = Bootstrap(
         table_name=table_name, table=table, dynamodb=dynamodb, exec_time=exec_time
     )
