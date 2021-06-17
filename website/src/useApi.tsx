@@ -41,7 +41,7 @@ function transformStory(original: any): any {
     },
     created_at: original.date,
     is_moderated: false,
-    comments_count: 8,
+    comments_count: 0,
     html_class_for_user: 'user_is_author',
     archive_url: 'https://archive.md/' + encodeURIComponent(original.link),
     comments_path: '/s/' + original.id,
