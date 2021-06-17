@@ -14,7 +14,7 @@ new InfrastructureStack(dev, 'NewsAggregator', {
   userPoolArn: 'arn:aws:cognito-idp:eu-central-1:312948075487:userpool/eu-central-1_hg8KLDUdE',
   webApp: {
     websitePath: '../website/build',
-    domainName: 'oryx.labmiriade.it',
+    domainName: 'mucca.labmiriade.it',
     domainCertArn: 'arn:aws:acm:us-east-1:312948075487:certificate/d1e49ef9-10b6-4e8c-83b2-f26d037fc19d',
   },
 });

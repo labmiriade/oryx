@@ -52,23 +52,24 @@ def add_lambda(f):
 def handler(event, context, lmbda):
     print(f'{event=}')
     req_body = json.loads(event['body'])
+    is_single_usr = is_single_user(req_body)
     try:
         article = _article_from_event(req_body)
         _add_article(article, lmbda)
         body = {
-            "text": "Caricato! Grazie mille 🐮",
+            "text": "Caricato! Grazie mille, lo trovi in mucca.labmiriade.it 🐮",
         }
     except NotAMessageException:
         body = {
             "text": "Ciao, scusami ma non capisco questo messaggio :(",
-        }
+        } if is_single_usr else {}
     except InGroupException:
         body = {
             "text": "Ciao, mi dispiace ma non sono ancora abilitata a funzionare nei gruppi 🐮",
         }
     except (NoLinkException, AddedToSpaceException):
         body = {
-            "text": "Ciao, mandami pure il link che vuoi caricare su Mucca, il news aggregator di Miriade! 🐮",
+            "text": "Ciao, mandami pure il link che vuoi caricare su Mucca, il news aggregator di Miriade! 🐮\nPoi Troverai i link su mucca.labmiriade.it :)",
         }
     except ErrorSavingLink:
         body = {
@@ -107,9 +108,6 @@ def _article_from_event(event: Dict[str, Any]) -> Article:
     elif event['type'] != 'MESSAGE':
         print(f'event {event=} is not a message')
         raise NotAMessageException()
-    elif not event['space']['singleUserBotDm']:
-        print(f'event {event=} refers to a group chat, should ignore for now')
-        raise InGroupException()
 
     # get message
     message = event['message']['text']
@@ -121,3 +119,8 @@ def _article_from_event(event: Dict[str, Any]) -> Article:
         link=match.groups('1')[0],
         referrer=referrer,
     )
+
+
+def is_single_user(event) -> Optional[bool]:
+    single_user = (event.get('space') or {}).get('singleUserBotDm')
+    return single_user
