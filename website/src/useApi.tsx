@@ -1,23 +1,25 @@
 import axios from 'axios';
 import { API_URL } from './environment';
 
-function useApi() {
-  const instance = axios.create({
-    baseURL: API_URL,
-    timeout: 1000,
-  });
+const instance = axios.create({
+  baseURL: API_URL,
+  timeout: 1000,
+});
 
-  return {
-    getArticles: () =>
-      instance
-        .get(`/articles`)
-        .then((response) => response.data)
-        .then((data) => {
-          data.items = data.items.map(transformStory);
-          return data;
-        }),
-    getArticle: (id: string) => instance.get(`/article/${id}`).then((response) => response.data),
-  };
+const api = {
+  getArticles: () =>
+    instance
+      .get(`/articles`)
+      .then((response) => response.data)
+      .then((data) => {
+        data.items = data.items.map(transformStory);
+        return data;
+      }),
+  getArticle: (id: string) => instance.get(`/article/${id}`).then((response) => response.data),
+}
+
+function useApi() {
+  return api;
 }
 
 export default useApi;
@@ -34,7 +36,7 @@ function transformStory(original: any): any {
     title: original.title,
     description: '',
     send_referrer: false,
-    user_is_author: true,
+    user_is_author: false,
     is_gone: false,
     url: {
       present: true,

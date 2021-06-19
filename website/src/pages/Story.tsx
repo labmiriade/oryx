@@ -8,10 +8,9 @@ function Story() {
 
   React.useEffect(() => {
     api.getArticles().then((articles) => {
-      console.log(articles);
       setStories(articles.items);
     });
-  }, []);
+  }, [api]);
 
   return (
     <ol className="stories list">
