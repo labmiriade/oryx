@@ -11,7 +11,7 @@ function Header() {
 
         <span className="headerlinks">
           <Link to="/" className="cur_url">
-            Oryx
+            Mucca
           </Link>
           {/*
           <Link to="/recent" className="">

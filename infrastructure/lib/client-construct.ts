@@ -58,7 +58,13 @@ export class ClientConstruct extends cdk.Construct {
     // deploy the last version of the website
     new s3deploy.BucketDeployment(this, 'Deployment', {
       destinationBucket: websiteBucket,
-      sources: [s3deploy.Source.asset(props.websitePath)],
+      sources: [s3deploy.Source.asset(props.websitePath, {
+        bundling: {
+          image: cdk.DockerImage.fromRegistry('node:14-alpine'),
+          command: ['sh', 'cdk-build.sh', 'build'],
+          user: 'root',
+        },
+      })],
       retainOnDelete: false,
       prune: true,
       distribution: cdn,
