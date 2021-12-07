@@ -25,6 +25,12 @@ paths:
           schema:
             type: string
           description: the token returned by previous call for pagination
+        - in: query
+          name: domain
+          required: false
+          schema:
+            type: string
+          description: filter articles by domain
       responses:
         200:
           description: OK
@@ -206,6 +212,9 @@ components:
           items:
             type: string
           example: [devops, docker]
+        domain:
+          type: string
+          example: labmiriade.it
         claps:
           type: integer
           minimum: 0

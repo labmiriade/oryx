@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_URL } from './environment';
+import { Article } from './interfaces';
 
 const instance = axios.create({
   baseURL: API_URL,
@@ -7,9 +8,9 @@ const instance = axios.create({
 });
 
 const api = {
-  getArticles: () =>
+  getArticles: (): Promise<{ nextToken: string, items: any[] }> =>
     instance
-      .get(`/articles`)
+      .get<{ nextToken: string, items: Article[] }>(`/articles`)
       .then((response) => response.data)
       .then((data) => {
         data.items = data.items.map(transformStory);
@@ -24,7 +25,7 @@ function useApi() {
 
 export default useApi;
 
-function transformStory(original: any): any {
+function transformStory(original: Article): any {
   return {
     short_id: original.id,
     vote: [],
@@ -51,13 +52,10 @@ function transformStory(original: any): any {
       username: original.referrer,
     },
     domain: {
-      present: true,
-      domain: original.link
-        .replace(/http:\/\/(www.){0,1}/, '')
-        .replace(/https:\/\/(www.){0,1}/, '')
-        .split(/[/?#]/)[0],
+      present: !!original.domain,
+      domain: original.domain,
     },
-    tags: original.tags.map((tag: string) => ({
+    tags: (original.tags ?? []).map((tag: string) => ({
       tag: tag,
       description: 'Use when every tag or no specific tag applies',
       css_class: `tag tag_${tag}`,

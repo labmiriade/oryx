@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
 import Story from './pages/Story';
 
@@ -10,14 +10,11 @@ function App() {
         <Header />
 
         <div id="inside">
-          <Switch>
-            <Route path="/">
-              <Story />
-            </Route>
-            <Route path="*">
-              <Redirect to="/" />
-            </Route>
-          </Switch>
+          <Routes>
+            <Route path="/" element={<Story />} />
+            {/* <Route path="/domain/:domain" element={<div>ciao!</div>} /> */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
 
           {/*
           <div className="morelink">

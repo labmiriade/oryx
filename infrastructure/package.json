@@ -5,7 +5,7 @@
     "infrastructure": "bin/infrastructure.js"
   },
   "scripts": {
-    "generate-schema": "npx openapi-typescript ../design/openapi.yml --output lib/schema.ts --prettier-config .prettierrc.yml",
+    "generate-schema": "openapi-typescript ../design/openapi.yml --output lib/schema.ts --prettier-config .prettierrc.yml",
     "build": "tsc",
     "watch": "tsc -w",
     "lint": "prettier --check .",

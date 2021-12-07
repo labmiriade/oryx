@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 import os
 import uuid
 from functools import wraps
@@ -31,6 +32,12 @@ def handler(event, context, articletable) -> Article:
     return article
 
 
+def domain_from_link(link: str) -> str:
+    address = urlparse(link)
+    netloc = address.netloc.split('.')
+    return '.'.join(netloc[-2:])
+
+
 def _article_from_input(a: Dict[str, Any]) -> Article:
     now = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
     aux = {
@@ -46,6 +53,7 @@ def _article_from_input(a: Dict[str, Any]) -> Article:
         "date": now,
         "gsi1sk": now,
         "type": ARTICLE_TYPE,
+        "domain": domain_from_link(a['link'])
     }
     if (tags := a.get('tags')) is not None:
         aux['tags'] = tags

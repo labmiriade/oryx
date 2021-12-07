@@ -7,6 +7,9 @@ test('Empty Stack', () => {
   // WHEN
   const stack = new Infrastructure.InfrastructureStack(app, 'MyTestStack', {
     userPoolArn: 'mytestarn',
+    webApp: {
+      websitePath: 'mucca.example.org',
+    },
   });
   // THEN
   expectCDK(stack).to(

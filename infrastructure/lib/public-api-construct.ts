@@ -404,21 +404,29 @@ function articleRequestTemplate(tableName: string): string {
   return `
 #set( $nextToken = $input.params('nextToken') )
 #set( $limit = $input.params('limit') )
+#set( $domain = $input.params('domain') )
 #if( "$limit" == "" || $limit.matches("^\\\\d+$") || $limit < 0 || $limit > 30 )
   #set( $limit = 30 )
 #end
 {
-  "TableName":"NewsAggregator-CoreArticlesTableC749F523-4U6EAER1HQ8P",
+  "TableName": "${tableName}",
+#if( "$domain" == "" )
   "IndexName":"GSI1",
   "KeyConditionExpression":"#type = :art",
   "ExpressionAttributeNames":{"#type":"type"},
   "ExpressionAttributeValues":{":art":{"S":"ART"}},
+#else
+  "IndexName":"GSI2",
+  "KeyConditionExpression":"#domain = :domain",
+  "ExpressionAttributeNames":{"#domain":"domain"},
+  "ExpressionAttributeValues":{":domain":{"S":"$domain"}},
+#end
   "ScanIndexForward":false,
 #if( $nextToken != "" )
   "ExclusiveStartKey": $util.base64Decode($nextToken),
 #end
   "Limit": $limit
-}  
+}
 `;
 }
 
@@ -440,7 +448,8 @@ const articlesResponseTemplate = `
       "clappers": $item.clappers.N,
       "views": $item.pings.N,
       "referrer": "$item.referrer.S",
-      "date": "$item.date.S"
+      "date": "$item.date.S",
+      "domain": "$item.domain.S"
     }#if($foreach.hasNext),#end
     #end
   ]
