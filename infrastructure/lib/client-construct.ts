@@ -18,9 +18,11 @@ export class ClientConstruct extends cdk.Construct {
     // the bucket for the SPA
     const websiteBucket = new s3.Bucket(this, 'WebsiteBucket', {
       autoDeleteObjects: true,
+      publicReadAccess: true,
       encryption: s3.BucketEncryption.S3_MANAGED,
-      enforceSSL: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      websiteIndexDocument: 'index.html',
+      websiteErrorDocument: 'index.html',
     });
 
     // the cdn for distributing the SPA
@@ -32,7 +34,10 @@ export class ClientConstruct extends cdk.Construct {
     }
     const cdn = new cloudfront.Distribution(this, 'WebsiteCDN', {
       defaultBehavior: {
-        origin: new origins.S3Origin(websiteBucket),
+        origin: new origins.HttpOrigin(websiteBucket.bucketWebsiteDomainName, {
+          protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+          httpPort: 80,
+        }),
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         compress: true,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -40,31 +45,22 @@ export class ClientConstruct extends cdk.Construct {
       comment: 'Website CDN for the news aggregator',
       domainNames: domainNames,
       certificate: domainCert,
-      defaultRootObject: 'index.html',
-      // errorResponses: [
-      //   {
-      //     httpStatus: 401,
-      //     responseHttpStatus: 200,
-      //     responsePagePath: '/index.html',
-      //   },
-      //   {
-      //     httpStatus: 403,
-      //     responseHttpStatus: 200,
-      //     responsePagePath: '/index.html',
-      //   },
-      // ],
+      minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+      httpVersion: cloudfront.HttpVersion.HTTP2,
     });
 
     // deploy the last version of the website
     new s3deploy.BucketDeployment(this, 'Deployment', {
       destinationBucket: websiteBucket,
-      sources: [s3deploy.Source.asset(props.websitePath, {
-        bundling: {
-          image: cdk.DockerImage.fromRegistry('node:14-alpine'),
-          command: ['sh', 'cdk-build.sh', 'build'],
-          user: 'root',
-        },
-      })],
+      sources: [
+        s3deploy.Source.asset(props.websitePath, {
+          bundling: {
+            image: cdk.DockerImage.fromRegistry('node:14-alpine'),
+            command: ['sh', 'cdk-build.sh', 'build'],
+            user: 'root',
+          },
+        }),
+      ],
       retainOnDelete: false,
       prune: true,
       distribution: cdn,
