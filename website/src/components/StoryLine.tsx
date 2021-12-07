@@ -47,15 +47,15 @@ function StoryLine({ story }: StoryLineProps) {
           </span>
           <span className="tags">
             {story.tags.map((tag: any, i: number) => (
-              <a key={i} className={tag.css_class} title={tag.description} href={'/t/' + tag.tag}>
+              <Link key={i} className={tag.css_class} title={tag.description} to={`/t/${tag.tag}`}>
                 {tag.tag}
-              </a>
+              </Link>
             ))}
           </span>
           {story.domain.present && (
-            <a className="domain" href={'/domain/' + story.domain.domain}>
+            <Link className="domain" to={`/domain/${story.domain.domain}`}>
               {story.domain.domain}
-            </a>
+            </Link>
           )}
 
           <div className="byline">
@@ -63,7 +63,7 @@ function StoryLine({ story }: StoryLineProps) {
             <Avatar username={story.user.username} />
             */}
             {story.user_is_author ? 'authored by ' : 'via '}
-            <Link to={'/u/' + story.user.username} className={'u-author h-card ' + story.html_class_for_user}>
+            <Link to={`/u/${story.user.username}`} className={'u-author h-card ' + story.html_class_for_user}>
               {story.user.username}
             </Link>{' '}
             {!!createdAt && <span title={formatISO(createdAt)}>{formatDistanceToNow(createdAt)} ago</span>}
