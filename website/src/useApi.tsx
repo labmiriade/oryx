@@ -8,9 +8,9 @@ const instance = axios.create({
 });
 
 const api = {
-  getArticles: (): Promise<{ nextToken: string, items: any[] }> =>
+  getArticles: (domain?: string): Promise<{ nextToken: string, items: any[] }> =>
     instance
-      .get<{ nextToken: string, items: Article[] }>(`/articles`)
+      .get<{ nextToken: string, items: Article[] }>(`/articles`, { params: { domain: domain } })
       .then((response) => response.data)
       .then((data) => {
         data.items = data.items.map(transformStory);

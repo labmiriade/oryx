@@ -12,7 +12,7 @@ function App() {
         <div id="inside">
           <Routes>
             <Route path="/" element={<Story />} />
-            {/* <Route path="/domain/:domain" element={<div>ciao!</div>} /> */}
+            <Route path="/domain/:domain" element={<Story />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
 
