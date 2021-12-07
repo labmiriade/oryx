@@ -21,7 +21,10 @@ html {
   --color-bg: rgb(var(--palette-bg));
   --color-bg-50: rgba(var(--palette-bg), 50%);
 
-  --color-fg: rgba(var(--palette-fg), var(--opacity-contrast-15)); /* primary text */
+  --color-fg: rgba(
+    var(--palette-fg),
+    var(--opacity-contrast-15)
+  ); /* primary text */
   --color-fg-contrast-13: rgba(var(--palette-fg), var(--opacity-contrast-13));
   --color-fg-contrast-10: rgba(var(--palette-fg), var(--opacity-contrast-10));
   --color-fg-contrast-7-5: rgba(var(--palette-fg), var(--opacity-contrast-7-5));
@@ -30,7 +33,10 @@ html {
   --color-fg-contrast-4-5: rgba(var(--palette-fg), var(--opacity-contrast-4-5));
 
   --color-fg-gradient-lit: rgba(var(--palette-fg), var(--opacity-gradient-lit));
-  --color-fg-gradient-shadowed: rgba(var(--palette-fg), var(--opacity-gradient-shadowed)); /* d7d7d7 */
+  --color-fg-gradient-shadowed: rgba(
+    var(--palette-fg),
+    var(--opacity-gradient-shadowed)
+  ); /* d7d7d7 */
 
   --color-light-25: rgba(var(--palette-light), 25%);
 
@@ -1006,11 +1012,13 @@ ul.user_tree {
 /* /u/:username/standing */
 /* https://codepen.io/sosuke/pen/Pjoqqp */
 .unwarned {
-  filter: invert(36%) sepia(52%) saturate(0%) hue-rotate(292deg) brightness(96%) contrast(85%);
+  filter: invert(36%) sepia(52%) saturate(0%) hue-rotate(292deg) brightness(96%)
+    contrast(85%);
 }
 .warned,
 .jaccuse {
-  filter: invert(13%) sepia(85%) saturate(4911%) hue-rotate(356deg) brightness(78%) contrast(95%);
+  filter: invert(13%) sepia(85%) saturate(4911%) hue-rotate(356deg)
+    brightness(78%) contrast(95%);
 }
 table.standing tr td {
   vertical-align: top;
@@ -1200,7 +1208,8 @@ div.flash-success {
   position: relative;
   padding: 7px 15px;
   margin-bottom: 18px;
-  border-color: var(--color-shadow-10) var(--color-shadow-10) var(--color-shadow-25);
+  border-color: var(--color-shadow-10) var(--color-shadow-10)
+    var(--color-shadow-25);
   border-width: 1px;
   border-style: solid;
   border-radius: 4px;
@@ -1296,7 +1305,10 @@ div.flash-success h2 {
   box-sizing: border-box;
   background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QAJQCeAPHNVUx7AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wEPAh02ee0QVwAAACZpVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVAgb24gYSBNYWOV5F9bAAABqElEQVQ4y62TvUtbURjGf+fek2vQpMF2ED9QkfpR6VLaDoIEF0UKWQRBQ+yQP6GDU0Xw4y/obOgg6dDSJVS61MlBcXFQB6M1BsF+IES9NnrzcRy8xpvrBwH7bOflfc553+d5jsCF9tiRDwgBEaDXLi8B80AiGQ2Yzn7hIo8Cce5HOBkNfLo6aA7ydAVkgLjdez3BrS8rRbBJEmyU+AyBVVDE1i1SJ6psEmHvfOLktj0SjL/2snKQx8wpNg+LBJt0RjoN+j6bqOvN/ZotWAldtYK5gWpmV84YbPUw2ePlb7bI73+Kep+OLFONkGarXcK7l16+7+V57BW8qJMs7Ob5k4VQm4fVXzlyquyGiHRYBcC+WWQxnSP63AAgtn7O0FNJ9xOd0W+nbkF7pbsytXxOQw30N0t2MgX6Wzy8qtMJL5zy81jdsETaIXnjLL7trkLqGl+2svxI5/mwZt1l6ZJmJ6yEGqkYbveQOioQ2yiz7TbMa0DCWRnuMPBXaXzcsJx23YWEZmc7fJkqxdgzg8xZka/bFhVE2hSuKL+nMswko4GJ//KZxEO/8wVmfpjJTWeCTQAAAABJRU5ErkJggg==)
       2px 2px no-repeat,
-    linear-gradient(var(--color-fg-gradient-lit), var(--color-fg-gradient-shadowed));
+    linear-gradient(
+      var(--color-fg-gradient-lit),
+      var(--color-fg-gradient-shadowed)
+    );
   border: 1px solid var(--color-box-border);
   border-radius: 3px;
   color: var(--color-fg);

@@ -8,8 +8,8 @@ import Voter from '../atoms/Voter';
 import { API_URL } from '../environment';
 
 type StoryLineProps = {
-  story: any
-}
+  story: any;
+};
 
 function StoryLine({ story }: StoryLineProps) {
   const [createdAt, setCreatedAt] = useState<Date | null>(null);
@@ -31,7 +31,11 @@ function StoryLine({ story }: StoryLineProps) {
   });
 
   return (
-    <li id={'story_' + story.short_id} data-shortid={story.short_id} className={storyClass}>
+    <li
+      id={'story_' + story.short_id}
+      data-shortid={story.short_id}
+      className={storyClass}
+    >
       <div className="story_liner h-entry">
         <Voter story={story} />
         <div className="details">
@@ -47,7 +51,12 @@ function StoryLine({ story }: StoryLineProps) {
           </span>
           <span className="tags">
             {story.tags.map((tag: any, i: number) => (
-              <Link key={i} className={tag.css_class} title={tag.description} to={`/t/${tag.tag}`}>
+              <Link
+                key={i}
+                className={tag.css_class}
+                title={tag.description}
+                to={`/t/${tag.tag}`}
+              >
                 {tag.tag}
               </Link>
             ))}
@@ -63,10 +72,17 @@ function StoryLine({ story }: StoryLineProps) {
             <Avatar username={story.user.username} />
             */}
             {story.user_is_author ? 'authored by ' : 'via '}
-            <Link to={`/u/${story.user.username}`} className={'u-author h-card ' + story.html_class_for_user}>
+            <Link
+              to={`/u/${story.user.username}`}
+              className={'u-author h-card ' + story.html_class_for_user}
+            >
               {story.user.username}
             </Link>{' '}
-            {!!createdAt && <span title={formatISO(createdAt)}>{formatDistanceToNow(createdAt)} ago</span>}
+            {!!createdAt && (
+              <span title={formatISO(createdAt)}>
+                {formatDistanceToNow(createdAt)} ago
+              </span>
+            )}
             {story.url.present && ' | '}
             {story.url.present && (
               <a href={story.archive_url} rel="ugc noreferrer" target="_blank">
@@ -88,7 +104,9 @@ function StoryLine({ story }: StoryLineProps) {
       </div>
       <a
         href={story.comments_path}
-        className={'mobile_comments ' + (story.comments_count === 0 ? 'zero' : '')}
+        className={
+          'mobile_comments ' + (story.comments_count === 0 ? 'zero' : '')
+        }
         style={{ display: 'none' }}
       >
         <span>{story.comments_count}</span>
