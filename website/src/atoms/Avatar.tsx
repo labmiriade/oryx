@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 type AvatarProps = {
   username: string
@@ -16,7 +17,7 @@ function Avatar({ username }: AvatarProps) {
   };
 
   return (
-    <a href={'/u/' + username}>
+    <Link to={`/u/${username}`}>
       <img
         srcSet={'/avatars/' + imgSrc + '-16.png 1x, /avatars/' + imgSrc + '-32.png 2x'}
         className="avatar"
@@ -26,7 +27,7 @@ function Avatar({ username }: AvatarProps) {
         height="16"
         onError={onError}
       />
-    </a>
+    </Link>
   );
 }
 

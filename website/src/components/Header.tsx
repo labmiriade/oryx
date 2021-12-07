@@ -5,9 +5,9 @@ function Header() {
   return (
     <div id="header">
       <div id="headerleft">
-        <a id="l_holder" style={{ backgroundColor: '#500000' }} href="/" title="Mucca">
+        <Link id="l_holder" style={{ backgroundColor: '#500000' }} to="/" title="Mucca">
           <img src="/images/miriade.png" className="Header__logo" alt="Mucca"></img>
-        </a>
+        </Link>
 
         <span className="headerlinks">
           <Link to="/" className="cur_url">
