@@ -3,7 +3,7 @@ import useApi from '../useApi';
 import StoryLine from '../components/StoryLine';
 
 function Story() {
-  const [stories, setStories] = React.useState([]);
+  const [stories, setStories] = React.useState<any[]>([]);
   const api = useApi();
 
   React.useEffect(() => {

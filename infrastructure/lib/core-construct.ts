@@ -41,6 +41,18 @@ export class CoreConstruct extends cdk.Construct {
       },
       projectionType: dynamodb.ProjectionType.ALL,
     });
+    articlesTable.addGlobalSecondaryIndex({
+      indexName: 'GSI2',
+      partitionKey: {
+        name: 'domain',
+        type: dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: 'gsi1sk',
+        type: dynamodb.AttributeType.STRING,
+      },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
 
     const articleEnricher = new lambda.Function(this, 'Enricher', {
       // code: new lambda.AssetCode('../article-enricher/article_enricher', {}),
