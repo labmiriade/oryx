@@ -2,8 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 type AvatarProps = {
-  username: string
-}
+  username: string;
+};
 
 function Avatar({ username }: AvatarProps) {
   const [imgSrc, setImgSrc] = React.useState(username);
@@ -19,7 +19,9 @@ function Avatar({ username }: AvatarProps) {
   return (
     <Link to={`/u/${username}`}>
       <img
-        srcSet={'/avatars/' + imgSrc + '-16.png 1x, /avatars/' + imgSrc + '-32.png 2x'}
+        srcSet={
+          '/avatars/' + imgSrc + '-16.png 1x, /avatars/' + imgSrc + '-32.png 2x'
+        }
         className="avatar"
         alt={username + ' avatar'}
         src={'/avatars/' + imgSrc + '-16.png'}
