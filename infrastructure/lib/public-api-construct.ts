@@ -1,9 +1,9 @@
-import * as cdk from '@aws-cdk/core';
-import * as apigateway from '@aws-cdk/aws-apigateway';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as cognito from '@aws-cdk/aws-cognito';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
-import * as iam from '@aws-cdk/aws-iam';
+import { Construct } from 'constructs';
+import { aws_apigateway as apigateway } from 'aws-cdk-lib';
+import { aws_lambda as lambda } from 'aws-cdk-lib';
+import { aws_cognito as cognito } from 'aws-cdk-lib';
+import { aws_dynamodb as dynamodb } from 'aws-cdk-lib';
+import { aws_iam as iam } from 'aws-cdk-lib';
 
 export interface PublicApiConstructProps {
   /**
@@ -18,8 +18,8 @@ export interface PublicApiConstructProps {
   googleChatFn: lambda.Alias;
 }
 
-export class PublicApiConstruct extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: PublicApiConstructProps) {
+export class PublicApiConstruct extends Construct {
+  constructor(scope: Construct, id: string, props: PublicApiConstructProps) {
     super(scope, id);
 
     // create the client infrastructure
