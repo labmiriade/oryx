@@ -1,16 +1,17 @@
-import * as cdk from '@aws-cdk/core';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as logs from '@aws-cdk/aws-logs';
-import { DynamoEventSource } from '@aws-cdk/aws-lambda-event-sources';
+import { Construct } from 'constructs';
+import { Duration } from 'aws-cdk-lib';
+import { aws_dynamodb as dynamodb } from 'aws-cdk-lib';
+import { aws_lambda as lambda } from 'aws-cdk-lib';
+import { aws_logs as logs } from 'aws-cdk-lib';
+import { aws_lambda_event_sources as les } from 'aws-cdk-lib';
 
-export class CoreConstruct extends cdk.Construct {
+export class CoreConstruct extends Construct {
   readonly articlesTable: dynamodb.Table;
   readonly clapsFn: lambda.Alias;
   readonly addArticleFn: lambda.Alias;
   readonly googleChatFn: lambda.Alias;
 
-  constructor(scope: cdk.Construct, id: string) {
+  constructor(scope: Construct, id: string) {
     super(scope, id);
 
     // the main table for the project
@@ -64,7 +65,7 @@ export class CoreConstruct extends cdk.Construct {
       },
       logRetention: logs.RetentionDays.TWO_WEEKS,
       memorySize: 128,
-      timeout: cdk.Duration.seconds(10),
+      timeout: Duration.seconds(10),
       tracing: lambda.Tracing.ACTIVE,
     });
     articlesTable.grantReadWriteData(articleEnricher);
@@ -73,7 +74,7 @@ export class CoreConstruct extends cdk.Construct {
       version: articleEnricher.currentVersion,
     });
     articleEnricher.addEventSource(
-      new DynamoEventSource(articlesTable, {
+      new les.DynamoEventSource(articlesTable, {
         startingPosition: lambda.StartingPosition.TRIM_HORIZON,
         batchSize: 5,
         bisectBatchOnError: true,

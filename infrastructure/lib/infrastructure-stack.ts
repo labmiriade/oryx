@@ -1,16 +1,17 @@
-import * as cdk from '@aws-cdk/core';
-import * as cognito from '@aws-cdk/aws-cognito';
+import { Construct } from 'constructs';
+import { Stack, StackProps } from 'aws-cdk-lib';
+import { aws_cognito as cognito } from 'aws-cdk-lib';
 import { ClientConstruct, ClientConstructProps } from './client-construct';
 import { PublicApiConstruct } from './public-api-construct';
 import { CoreConstruct } from './core-construct';
 
-export interface InfrastructurePropsStack extends cdk.StackProps {
+export interface InfrastructurePropsStack extends StackProps {
   userPoolArn: string;
   webApp: ClientConstructProps;
 }
 
-export class InfrastructureStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props: InfrastructurePropsStack) {
+export class InfrastructureStack extends Stack {
+  constructor(scope: Construct, id: string, props: InfrastructurePropsStack) {
     super(scope, id, props);
 
     // create the client infrastructure

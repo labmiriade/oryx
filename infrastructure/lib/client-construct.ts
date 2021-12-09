@@ -1,9 +1,10 @@
-import * as cdk from '@aws-cdk/core';
-import * as acm from '@aws-cdk/aws-certificatemanager';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3deploy from '@aws-cdk/aws-s3-deployment';
-import * as cloudfront from '@aws-cdk/aws-cloudfront';
-import * as origins from '@aws-cdk/aws-cloudfront-origins';
+import { Construct } from 'constructs';
+import { CfnOutput, DockerImage, RemovalPolicy } from 'aws-cdk-lib';
+import { aws_certificatemanager as acm } from 'aws-cdk-lib';
+import { aws_s3 as s3 } from 'aws-cdk-lib';
+import { aws_s3_deployment as s3deploy } from 'aws-cdk-lib';
+import { aws_cloudfront as cloudfront } from 'aws-cdk-lib';
+import { aws_cloudfront_origins as origins } from 'aws-cdk-lib';
 
 export interface ClientConstructProps {
   websitePath: string;
@@ -11,8 +12,8 @@ export interface ClientConstructProps {
   domainCertArn?: string;
 }
 
-export class ClientConstruct extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: ClientConstructProps) {
+export class ClientConstruct extends Construct {
+  constructor(scope: Construct, id: string, props: ClientConstructProps) {
     super(scope, id);
 
     // the bucket for the SPA
@@ -20,7 +21,7 @@ export class ClientConstruct extends cdk.Construct {
       autoDeleteObjects: true,
       publicReadAccess: true,
       encryption: s3.BucketEncryption.S3_MANAGED,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
       websiteIndexDocument: 'index.html',
       websiteErrorDocument: 'index.html',
     });
@@ -55,7 +56,7 @@ export class ClientConstruct extends cdk.Construct {
       sources: [
         s3deploy.Source.asset(props.websitePath, {
           bundling: {
-            image: cdk.DockerImage.fromRegistry('node:14-alpine'),
+            image: DockerImage.fromRegistry('node:14-alpine'),
             command: ['sh', 'cdk-build.sh', 'build'],
             user: 'root',
           },
@@ -67,7 +68,7 @@ export class ClientConstruct extends cdk.Construct {
     });
 
     // print the url to the SPA
-    new cdk.CfnOutput(this, 'CDNDomain', {
+    new CfnOutput(this, 'CDNDomain', {
       value: cdn.distributionDomainName,
       description: 'The domain for the news aggregator url',
     });
