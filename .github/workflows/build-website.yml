@@ -1,0 +1,48 @@
+name: Website Build
+
+on:
+  pull_request:
+    paths:
+      - 'website/**/*'
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'website/**/*'
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.1.4
+        with:
+          node-version: 14.x
+
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Restore Cache
+        uses: actions/cache@v2
+        with:
+          path: website/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('website/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install, Test, Build
+        run: |
+          cd website
+          npm install
+          npm run lint
+          npm run build
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          name: website-code
+          path: website/build/

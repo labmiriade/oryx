@@ -1,9 +1,9 @@
 import { Construct } from 'constructs';
 import { Duration } from 'aws-cdk-lib';
-import { aws_dynamodb as dynamodb } from 'aws-cdk-lib';
-import { aws_lambda as lambda } from 'aws-cdk-lib';
-import { aws_logs as logs } from 'aws-cdk-lib';
-import { aws_lambda_event_sources as les } from 'aws-cdk-lib';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as les from 'aws-cdk-lib/aws-lambda-event-sources';
 
 export class CoreConstruct extends Construct {
   readonly articlesTable: dynamodb.Table;
