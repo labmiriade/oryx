@@ -1,9 +1,10 @@
 import { Construct } from 'constructs';
 import { Stack, StackProps } from 'aws-cdk-lib';
-import { aws_cognito as cognito } from 'aws-cdk-lib';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { ClientConstruct, ClientConstructProps } from './client-construct';
 import { PublicApiConstruct } from './public-api-construct';
 import { CoreConstruct } from './core-construct';
+import { AnalyticsConstruct } from './analytics-construct';
 
 export interface InfrastructurePropsStack extends StackProps {
   userPoolArn: string;
@@ -25,5 +26,6 @@ export class InfrastructureStack extends Stack {
       addArticleFn: coreConstruct.addArticleFn,
       googleChatFn: coreConstruct.googleChatFn,
     });
+    new AnalyticsConstruct(this, 'Analytics', {});
   }
 }

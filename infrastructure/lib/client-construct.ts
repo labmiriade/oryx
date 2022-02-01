@@ -1,10 +1,10 @@
 import { Construct } from 'constructs';
 import { CfnOutput, DockerImage, RemovalPolicy } from 'aws-cdk-lib';
-import { aws_certificatemanager as acm } from 'aws-cdk-lib';
-import { aws_s3 as s3 } from 'aws-cdk-lib';
-import { aws_s3_deployment as s3deploy } from 'aws-cdk-lib';
-import { aws_cloudfront as cloudfront } from 'aws-cdk-lib';
-import { aws_cloudfront_origins as origins } from 'aws-cdk-lib';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 
 export interface ClientConstructProps {
   websitePath: string;
