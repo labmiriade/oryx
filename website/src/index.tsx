@@ -16,9 +16,12 @@ const awsRegion = process.env.REACT_APP_AWS_REGION ?? 'eu-central-1';
 const guestRoleArn = process.env.REACT_APP_COGNITO_GUEST_ROLE_ARN ?? '';
 const rumMonitorId = process.env.REACT_APP_RUM_MONITOR_ID ?? '';
 
-if (rumMonitorId.trim() !== '' && identityPoolId.trim() !== '' && guestRoleArn.trim() !== '') {
-  new rum.AwsRum(rumMonitorId, '1.0.0',
-    awsRegion, {
+if (
+  rumMonitorId.trim() !== '' &&
+  identityPoolId.trim() !== '' &&
+  guestRoleArn.trim() !== ''
+) {
+  new rum.AwsRum(rumMonitorId, '1.0.0', awsRegion, {
     sessionSampleRate: 1,
     guestRoleArn: guestRoleArn,
     identityPoolId: identityPoolId,
