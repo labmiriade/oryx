@@ -16,7 +16,7 @@ export class InfrastructureStack extends Stack {
     super(scope, id, props);
 
     // create the client infrastructure
-    new ClientConstruct(this, 'Client', props.webApp);
+    const clientConstruct = new ClientConstruct(this, 'Client', props.webApp);
     const coreConstruct = new CoreConstruct(this, 'Core');
     const userPool = cognito.UserPool.fromUserPoolArn(this, 'UserPool', props?.userPoolArn);
     new PublicApiConstruct(this, 'PublicApi', {
@@ -26,6 +26,8 @@ export class InfrastructureStack extends Stack {
       addArticleFn: coreConstruct.addArticleFn,
       googleChatFn: coreConstruct.googleChatFn,
     });
-    new AnalyticsConstruct(this, 'Analytics', {});
+    new AnalyticsConstruct(this, 'Analytics', {
+      domainName: clientConstruct.domainName,
+    });
   }
 }

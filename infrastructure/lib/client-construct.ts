@@ -13,6 +13,8 @@ export interface ClientConstructProps {
 }
 
 export class ClientConstruct extends Construct {
+  domainName: string;
+
   constructor(scope: Construct, id: string, props: ClientConstructProps) {
     super(scope, id);
 
@@ -72,5 +74,7 @@ export class ClientConstruct extends Construct {
       value: cdn.distributionDomainName,
       description: 'The domain for the news aggregator url',
     });
+
+    this.domainName = props.domainName ? props.domainName : cdn.domainName;
   }
 }
