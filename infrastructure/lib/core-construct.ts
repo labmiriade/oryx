@@ -59,7 +59,7 @@ export class CoreConstruct extends Construct {
       // code: new lambda.AssetCode('../article-enricher/article_enricher', {}),
       code: new lambda.InlineCode('# to be implemented'),
       handler: 'main.handler',
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_11,
       environment: {
         articleTable: articlesTable.tableName,
       },
@@ -85,7 +85,7 @@ export class CoreConstruct extends Construct {
     const clapsFn = new lambda.Function(this, 'ClapsFn', {
       code: new lambda.AssetCode('../claps-api/claps_api'),
       handler: 'main.handler',
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_11,
       description: 'Function to handle Clap API',
       logRetention: logs.RetentionDays.TWO_WEEKS,
       tracing: lambda.Tracing.PASS_THROUGH,
@@ -102,7 +102,7 @@ export class CoreConstruct extends Construct {
     const addArticleFn = new lambda.Function(this, 'AddArticleFn', {
       code: new lambda.AssetCode('../articlefn/articlefn'),
       handler: 'add.handler',
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_11,
       description: 'Function to add an article',
       logRetention: logs.RetentionDays.TWO_WEEKS,
       tracing: lambda.Tracing.PASS_THROUGH,
@@ -119,7 +119,7 @@ export class CoreConstruct extends Construct {
     const googleChatFn = new lambda.Function(this, 'GoogleChatFn', {
       code: new lambda.AssetCode('../google-chat/google_chat'),
       handler: 'main.handler',
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_11,
       description: 'Function to add handle google chat bot requests',
       logRetention: logs.RetentionDays.TWO_WEEKS,
       tracing: lambda.Tracing.PASS_THROUGH,

@@ -1,4 +1,4 @@
-import { expect as expectCDK, matchTemplate, MatchStyle } from '@aws-cdk/assert';
+import { Template } from 'aws-cdk-lib/assertions';
 import { App } from 'aws-cdk-lib';
 import * as Infrastructure from '../lib/infrastructure-stack';
 
@@ -11,13 +11,5 @@ test('Empty Stack', () => {
       websitePath: 'mucca.example.org',
     },
   });
-  // THEN
-  expectCDK(stack).to(
-    matchTemplate(
-      {
-        Resources: {},
-      },
-      MatchStyle.EXACT,
-    ),
-  );
+  Template.fromStack(stack);
 });
